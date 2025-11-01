@@ -43,11 +43,11 @@ class Trainer:
         if self.loss == 'mse':
             epoch_loss.append(xp.mean((target - self.hl[-1].activated_sum) ** 2))
             loss_grad = 2 * (self.hl[-1].activated_sum - target) / self.hl[-1].activated_sum.shape[0]
-            self.hl[-1].b_deltas = loss_grad * self.hl[-1].act_grads
+            self.hl[-1].b_deltas = xp.mean(loss_grad * self.hl[-1].act_grads, axis=0, keepdims=True)
         elif self.loss == 'bce':
             epoch_loss.append(-xp.mean(target * xp.log(self.hl[-1].activated_sum) + (1 - target) * xp.log(1 - self.hl[-1].activated_sum)))
             loss_grad = ((1 - target) / (1 - self.hl[-1].activated_sum) - target / self.hl[-1].activated_sum) / self.hl[-1].activated_sum.shape[0]
-            self.hl[-1].b_deltas = loss_grad * self.hl[-1].act_grads
+            self.hl[-1].b_deltas = xp.mean(loss_grad * self.hl[-1].act_grads, axis=0, keepdims=True)
         elif self.loss == 'ce':
             epoch_loss.append(-xp.mean(target * xp.log(self.hl[-1].activated_sum)))
             self.hl[-1].b_deltas = xp.mean(self.hl[-1].activated_sum - target, axis=0, keepdims=True)
