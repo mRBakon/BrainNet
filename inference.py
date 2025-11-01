@@ -1,3 +1,11 @@
+import subprocess
+comp_gpu = None
+try:
+    subprocess.check_output('nvidia-smi')
+    comp_gpu = True
+except Exception:
+    comp_gpu = False
+
 import numpy as np
 try:
     import cupy as xp
@@ -20,14 +28,23 @@ class Inference:
     def initialize(self):
         i = 0
         data = np.load(self.m_dir)
-        data_gpu = {k: xp.array(v) for k, v in data.items()}
-        while f"layer{i}_W" in data:
-            weights = data_gpu[f"layer{i}_W"]
-            biases = data_gpu[f"layer{i}_B"]
-            self.hl.append(HL(n_count=weights.shape[1]))
-            self.hl[i].weights = weights
-            self.hl[i].biases = biases
-            i += 1
+        if comp_gpu:
+            data_gpu = {k: xp.array(v) for k, v in data.items()}
+            while f"layer{i}_W" in data:
+                weights = data_gpu[f"layer{i}_W"]
+                biases = data_gpu[f"layer{i}_B"]
+                self.hl.append(HL(n_count=weights.shape[1]))
+                self.hl[i].weights = weights
+                self.hl[i].biases = biases
+                i += 1
+        elif comp_gpu:
+            while f"layer{i}_W" in data:
+                weights = data[f"layer{i}_W"]
+                biases = data[f"layer{i}_B"]
+                self.hl.append(HL(n_count=weights.shape[1]))
+                self.hl[i].weights = weights
+                self.hl[i].biases = biases
+                i += 1
         return self
 
     # This runs the model on your data - consider increasing the "data" size you use for batching, you can get the results for numerous inputs at once
