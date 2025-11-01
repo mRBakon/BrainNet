@@ -1,5 +1,10 @@
 from typing import Optional
-import numpy as cp
+import numpy as np
+try:
+    import cupy as cp
+    xp = cp if cp.cuda.runtime.getDeviceCount() > 0 else np
+except ImportError:
+    xp = np
 
 
 class HiddenLayer:
@@ -20,19 +25,19 @@ class HiddenLayer:
         self.i_deltas = None
 
     def xavier_init(self, prev):
-        limit = cp.sqrt(6 / (prev + self.n_count))
-        return cp.random.uniform(-limit, limit, size=(prev, self.n_count))
+        limit = xp.sqrt(6 / (prev + self.n_count))
+        return xp.random.uniform(-limit, limit, size=(prev, self.n_count))
 
     def he_init(self, prev):
-        return cp.random.normal(0, cp.sqrt(2 / prev), size=(prev, self.n_count))
+        return xp.random.normal(0, xp.sqrt(2 / prev), size=(prev, self.n_count))
 
     def init_params(self, method, prev):
         if method == "xavier":
             self.weights = self.xavier_init(prev)
-            self.biases = cp.zeros(shape=(1, self.n_count))
+            self.biases = xp.zeros(shape=(1, self.n_count))
         elif method == "he":
             self.weights = self.he_init(prev)
-            self.biases = cp.zeros(shape=(1, self.n_count))
+            self.biases = xp.zeros(shape=(1, self.n_count))
         return self
 
     def hl_prep(self, matrix):
@@ -40,17 +45,17 @@ class HiddenLayer:
         return self
 
     def relu(self, mode, a):
-        self.activated_sum = cp.maximum(self.weighted_sum, self.weighted_sum * -a)
+        self.activated_sum = xp.maximum(self.weighted_sum, self.weighted_sum * -a)
         if mode == 'training':
-            self.act_grads = (cp.where(self.activated_sum > 0, 1, -a))
+            self.act_grads = (xp.where(self.activated_sum > 0, 1, -a))
         return self
 
     def sigmoid(self, mode):
-        self.activated_sum = 1 / (1 + cp.exp(-self.weighted_sum))
+        self.activated_sum = 1 / (1 + xp.exp(-self.weighted_sum))
         if mode == 'training':
             self.act_grads = (self.activated_sum * (1 - self.activated_sum))
         return self
 
     def softmax(self):
-        self.activated_sum = cp.exp(self.weighted_sum) / cp.sum(cp.exp(self.weighted_sum), axis=1, keepdims=True)
+        self.activated_sum = xp.exp(self.weighted_sum) / xp.sum(xp.exp(self.weighted_sum), axis=1, keepdims=True)
         return self
