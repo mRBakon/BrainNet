@@ -28,3 +28,5 @@ Or consider using a direct print statement perhaps if debugging or something of 
 This model includes relu (leaky and normal), sigmoid, and softmax as activation functions. It includes mean squared error, binary cross entropy, and cross entropy as loss functions. The model performs batch sgd, and is naive at the moment, although I may add momentum or more advanced methods in the future.
 With all that said, you should be ready to create and run models to your hearts desire. While this can't compete with something like tensorflow or pytorch, I hope that its simplicity might help some people, and that some people might build on this as they want. But even if this is never used much,
 it was worth it to me, as a great learning experience.
+
+NOTE - As of now, only softmax networks using cross entropy learning have been tested and reliably work, the other methods are being worked upon.
